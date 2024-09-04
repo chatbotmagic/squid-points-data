@@ -25,6 +25,9 @@ async function main() {
 	const optimismHeight = (await axios.get('https://v2.archive.subsquid.io/network/optimism-mainnet/height')).data
 	env += `OPTIMISM_ARCHIVE_HEIGHT=${optimismHeight}\n`
 
+	const artheraHeight = (await axios.get('https://v2.archive.subsquid.io/network/arthera-mainnet/height')).data
+	env += `ARTHERA_ARCHIVE_HEIGHT=${artheraHeight}\n`
+
 	await fs.writeFile('.env', env, e => { if (e) console.error(e); else console.log('.env written successfully') })
 }
 
