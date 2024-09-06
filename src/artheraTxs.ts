@@ -40,20 +40,27 @@ const dbOptions = {
 	chunkSizeMb: Infinity
 }
 
-processor.run(new Database(dbOptions), async (ctx) => {
-	for (let block of ctx.blocks) {
-		for (let txn of block.transactions) {
-			ctx.store.TransfersTable.write({
-//				txnHash: txn.hash,
-//				timestamp: block.header.timestamp,
-				from: txn.from,
-//				value: txn.value.toString()
-			})
-		}
-	}
+const excludeWalletsFilePath = './assets/excludedWallets.json'; 
+const excludedWalletsArray = JSON.parse(fs.readFileSync(excludeWalletsFilePath, 'utf-8')); 
+const excludedWallets = new Set(excludedWalletsArray.map((wallet: string) => wallet.toLowerCase()));
 
-	if (ctx.blocks[ctx.blocks.length-1].header.height >= height) {
-		ctx.log.info(`Last processed block was at ${new Date(ctx.blocks[ctx.blocks.length-1].header.timestamp)}`)
-		ctx.store.setForceFlush(true)
-	}
-})
+processor.run(new Database(dbOptions), async (ctx) => {
+  for (let block of ctx.blocks) {
+    for (let txn of block.transactions) {
+      if (!excludedWallets.has(txn.from.toLocaleLowerCase())) {
+		ctx.store.TransfersTable.write({
+			//				txnHash: txn.hash,
+			//				timestamp: block.header.timestamp,
+							from: txn.from,
+			//				value: txn.value.toString()
+						})
+      }
+    }
+  }
+
+  if (ctx.blocks[ctx.blocks.length - 1].header.height >= height) {
+    ctx.log.info(`Last processed block was at ${new Date(ctx.blocks[ctx.blocks.length - 1].header.timestamp)}`);
+    ctx.store.setForceFlush(true);
+  }
+});
+
